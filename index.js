@@ -3,9 +3,7 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
-
-const util = require('util');
-const setTimeoutPromise = util.promisify(setTimeout);
+var timer = require('nano-timer');
 
 app.use(express.static(__dirname + '/public'));
 
@@ -28,21 +26,22 @@ function onConnection(socket) {
         // get associates
         var associates = [];
         var assoData = data.associates;
-        for (var i = 0; i < n; i++) {
+        for (var i = 0; i < assoData.length; i++) {
             associates.push(assoData[i].IdAssociated);
         }
         services[data.transaction.idTransaction] = associates;
         socket.broadcast.emit('ServiceAvailable', data);
-
-
-        setTimeoutPromise(10000, 'foobar').then(() => {
-            console.log("Send notifications");
-
+        timer(10000/*ms*/, 'ok').then(function (v) {
+            console.log("Send notifications to: " +  remainAsso.lenght);
             var remainAsso = services[data.transaction.idTransaction];
             for (var j = 0; j - remainAsso.length; i++) {
                 console.log("Send notification for : " + remainAsso[i]);
             }
-        });
+          timer.cancel();
+}).catch(function (e) {
+    console.error("Error on send notifications" + e);
+});
+
     });
 
     socket.on("ServiceReceived", function(payload) {

@@ -9,7 +9,11 @@
   ],
   "dependencies": {
     "express": "4.9.x",
-    "socket.io": "latest"
+    "moment-timer": "^1.2.0",
+    "nano-timer": "^1.0.1",
+    "socket.io": "latest",
+    "util": "^0.10.3",
+    "util.promisify": "^1.0.0"
   },
   "scripts": {
     "start": "node index"
