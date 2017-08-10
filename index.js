@@ -31,16 +31,21 @@ function onConnection(socket) {
         }
         services[data.transaction.idTransaction] = associates;
         socket.broadcast.emit('ServiceAvailable', data);
-        timer(10000/*ms*/, 'ok').then(function (v) {
-            console.log("Send notifications to: " +  remainAsso.lenght);
+
+        timer(10000 /*ms*/ , 'ok').then(function(v) {
+            console.log("Send notifications to: " + remainAsso.lenght);
+
             var remainAsso = services[data.transaction.idTransaction];
+            console.log(remainAsso);
             for (var j = 0; j - remainAsso.length; i++) {
                 console.log("Send notification for : " + remainAsso[i]);
             }
-          timer.cancel();
-}).catch(function (e) {
-    console.error("Error on send notifications" + e);
-});
+            timer.cancel();
+        }).catch(function(e) {
+            console.error("Error on send notifications: " + e);
+        });
+
+        socket.emit("RequestAccepted");
 
     });
 
