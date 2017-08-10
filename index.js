@@ -4,6 +4,9 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
 
+const util = require('util');
+const setTimeoutPromise = util.promisify(setTimeout);
+
 app.use(express.static(__dirname + '/public'));
 
 var clients = [];
@@ -21,9 +24,38 @@ function onConnection(socket) {
     // Services
     socket.on('ServiceRequest', function(data) {
         console.log("OnService broadcast!!", data);
-        services[data] = false;
+
+        // get associates
+        var associates = [];
+        var assoData = data.associates;
+        for (var i = 0; i < n; i++) {
+            associates.push(assoData[i].IdAssociated);
+        }
+        services[data.transaction.idTransaction] = associates;
         socket.broadcast.emit('ServiceAvailable', data);
 
+
+        setTimeoutPromise(10000, 'foobar').then(() => {
+            console.log("Send notifications");
+
+            var remainAsso = services[data.transaction.idTransaction];
+            for (var j = 0; j - remainAsso.length; i++) {
+                console.log("Send notification for : " + remainAsso[i]);
+            }
+        });
+    });
+
+    socket.on("ServiceReceived", function(payload) {
+        var transaction = payload.transaction;
+        var associated = payload.associated;
+
+        console.log("Service received by", associated);
+
+        var array = services[transaction];
+        var index = array.find(a => a === associated);
+
+        array.splice(index, 1);
+        services[transaction] = array;
     });
 
     socket.on("AcceptService", function(payload) {
@@ -39,7 +71,6 @@ function onConnection(socket) {
         }
 
     });
-
 
     // Users
     socket.on('LoginGlker', function(data1) {
@@ -58,9 +89,15 @@ function onConnection(socket) {
             console.info('Client gone (id=' + socket.id + ').');
         }
     });
-
 };
 
 io.on('connection', onConnection);
 
 http.listen(port, () => console.log('listening on port ' + port));
+
+
+// Services AWS
+
+var request = function() {
+
+};

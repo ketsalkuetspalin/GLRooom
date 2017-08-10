@@ -4,11 +4,18 @@
 
     var colors = document.getElementsByClassName('color');
 
-    var socket1 = io("http://localhost:3000");
-    var socket2 = io('http://localhost:3000', {
+    // var url = "http://localhost:3000";
+    var url = "http://ragnarok.goodlook.com.mx:3000";
+
+    var socket1 = io(url);
+    var socket2 = io(url, {
         forceNew: true
     });
-    const sysSocket = io('http://localhost:3000', {
+    const sysSocket = io(url, {
+        forceNew: true
+    });
+
+    const client = io(url, {
         forceNew: true
     });
 
