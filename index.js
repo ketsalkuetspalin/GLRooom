@@ -4,6 +4,7 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
 var timer = require('nano-timer');
+var https = require("https");
 
 app.use(express.static(__dirname + '/public'));
 
@@ -24,26 +25,40 @@ function onConnection(socket) {
         console.log("OnService broadcast!!", data);
 
         // get associates
-        var associates = [];
-        var assoData = data.associates;
-        for (var i = 0; i < assoData.length; i++) {
-            associates.push(assoData[i].IdAssociated);
-        }
-        services[data.transaction.idTransaction] = associates;
+      //  var associates = [];
+      //  var assoData = data.associates;
+      //  for (var i = 0; i < assoData.length; i++) {
+      //      console.log("Data: ", assoData[i]);
+      //      associates.push(assoData[i].idAssociated);
+      //  }
+
+        services[data.transaction.idTransaction] = data.associates;
+
+        console.log("Associates: ", services[data.transaction.idTransaction]);
+
         socket.broadcast.emit('ServiceAvailable', data);
 
-        timer(10000 /*ms*/ , 'ok').then(function(v) {
-            console.log("Send notifications to: " + remainAsso.lenght);
-
+        setTimeout(function() {
             var remainAsso = services[data.transaction.idTransaction];
-            console.log(remainAsso);
-            for (var j = 0; j - remainAsso.length; i++) {
-                console.log("Send notification for : " + remainAsso[i]);
+            console.log("Remaining Associated: ", remainAsso);
+
+            if (remainAsso) {
+                console.log("Send notifications to: " + remainAsso.length);
+                for (var j = 0; j < remainAsso.length; j++) {
+                 console.log("Send notification for : " + remainAsso[j]);
+
+                 var paramsPush = {
+                  "token": remainAsso[j].token,
+                  "message": "Tienes una nueva petición de servicio.",
+                  "extra": data.transaction
+                 };
+
+                 sendNotification(paramsPush, function(){
+                  console.log("Notification sent..");
+                 });
+                }
             }
-            timer.cancel();
-        }).catch(function(e) {
-            console.error("Error on send notifications: " + e);
-        });
+        }, 10000);
 
         socket.emit("RequestAccepted");
 
@@ -56,7 +71,7 @@ function onConnection(socket) {
         console.log("Service received by", associated);
 
         var array = services[transaction];
-        var index = array.find(a => a === associated);
+        var index = array.find(a => a.idAssociated === associated);
 
         array.splice(index, 1);
         services[transaction] = array;
@@ -104,4 +119,38 @@ http.listen(port, () => console.log('listening on port ' + port));
 
 var request = function() {
 
+};
+
+
+var sendNotification = function(paramsPush, callback) {
+ var options = {
+  "method": "POST",
+  "hostname": "bs3pk23puh.execute-api.us-east-1.amazonaws.com",
+  "port": null,
+  "path": "/prod/Common/pushNotification",
+  "headers": {
+   "content-type": "application/json",
+   "cache-control": "no-cache"
+  }
+ };
+
+ var req = https.request(options, function(res) {
+  var chunks = [];
+
+  res.on("data", function(chunk) {
+   chunks.push(chunk);
+  });
+
+  res.on("end", function() {
+   var body = Buffer.concat(chunks);
+   console.log(body.toString());
+   return callback(null, body);
+  });
+ });
+
+
+ console.info("Param4Push: ", paramsPush);
+
+ req.write(JSON.stringify(paramsPush));
+ req.end();
 };
