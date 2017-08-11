@@ -47,6 +47,9 @@ function onConnection(socket) {
                 for (var j = 0; j < remainAsso.length; j++) {
                  console.log("Send notification for : " + remainAsso[j]);
 
+                 data.transaction["idAssociated"] = remainAsso[j];
+                 data.transaction["idSalon"] = 0;
+
                  var paramsPush = {
                   "token": remainAsso[j].token,
                   "message": "Tienes una nueva petición de servicio.",
